@@ -1,6 +1,10 @@
 
-CLIENT_SECRETS_FILE = "./credentials/client_secret.json"
-SCOPES = ['https://www.googleapis.com/auth/youtube.readonly']
+import google_auth_oauthlib.flow
+import googleapiclient.discovery
+import os
+
+from constants import CLIENT_SECRETS_FILE, SCOPES
+from playlist import Playlist
 
 
 class YouTubeClient(object):
@@ -8,13 +12,9 @@ class YouTubeClient(object):
         self.youtube_client = self.get_youtube_client()
 
     def __str__(self):
-        return str(self.youtube_client)
+        return super().__str__()
 
     def get_youtube_client(self):
-        import google_auth_oauthlib.flow
-        import googleapiclient.discovery
-        import os
-
         # disable oauthlib's https verification when running locally
         # do not leave this option enabled in production, set os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = "0"
         os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = "1"
@@ -30,10 +30,28 @@ class YouTubeClient(object):
         # an authorization code will be asked for here
         credentials = flow.run_console()
 
-        # NOTE youtube_client is a "googleapiclient.discovery.Resource" object
+        # youtube_client is a "googleapiclient.discovery.Resource" object
         youtube_client = googleapiclient.discovery.build(
             api_service_name,
             api_version,
             credentials=credentials)
 
         return youtube_client
+
+    def get_youtube_playlists(self):
+        request = self.youtube_client.playlists().list(
+            part="id,snippet",
+            maxResults=20,
+            mine=True)
+
+        response = request.execute()
+
+        playlists = []
+        for item in response['items']:
+            playlists.append(
+                Playlist(item['id'], item['snippet']['title']))
+
+        # alternative implementation
+        # playlists = [Playlist(item['id'], item['snippet']['title']) for item in response['items']]
+
+        return playlists

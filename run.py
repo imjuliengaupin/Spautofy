@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
+from spautofy import Spautofy
+
+
 def run():
-    pass
+    Spautofy()
 
 
 if __name__ == "__main__":
