@@ -1,8 +1,5 @@
 
-# generate new spotify tokens at https://developer.spotify.com/console
-# spotify tokens expire every 1 hour
-SPOTIFY_TOKEN = ""
-SPOTIFY_USER_ID = ""
+from constants import SPOTIFY_TOKEN, SPOTIFY_USER_ID
 
 
 class SpotifyClient(object):

@@ -1,7 +1,9 @@
 
 class Track(object):
-    def __init__(self):
-        pass
+    def __init__(self, artist, track_name, video_id):
+        self.artist = artist
+        self.track_name = track_name
+        self.video_id = video_id
 
     def __str__(self):
-        pass
+        return f"artist: {self.artist}\ntrack: {self.track_name}\nvideo id: {self.video_id}"
