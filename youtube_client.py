@@ -1,4 +1,5 @@
 
+import emoji
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import os
@@ -90,12 +91,60 @@ class YouTubeClient(object):
             artist, track = get_artist_title(video['title'])
         except TypeError as error_msg:
             # print(error_msg)
+
             # TEST on multiple video title scenarios
             artist = input(
-                f"unrecognized artist\nplease provide the artist of the track - {video['title']}: ")
+                f"unrecognized artist\nplease provide the artist of the track \"{video['title']}\": ")
             track = video['title']
 
         # TODO handle artist and track formatting here
+
+        # removes any emojis from the artist and track names
+        artist = emoji.get_emoji_regexp().sub(u"", artist.lower().title())
+        track = emoji.get_emoji_regexp().sub(u"", track.lower().title())
+
         # RESEARCH how to handle when artist/track naming format is swapped
 
         return artist, track
+
+    # TEST experimental functionality
+    """def get_liked_youtube_videos(self):
+        # collect all liked videos and create a dictionary of track info
+        request = self.youtube_client.videos().list(
+            part="snippet,contentDetails,statistics",
+            myRating="like"
+        )
+
+        response = request.execute()
+
+        # collect each video and get important information
+        for item in response['items']:
+            video_title = item['snippet']['title']
+            youtube_url = f"https://www.youtube.com/watch?v={item['id']}"
+
+            # use youtube_dl to collect the artist and track name
+            video = youtube_dl.YoutubeDL({}).extract_info(
+                youtube_url, download=False)
+
+            artist = video['artist']
+            track_name = video['track']
+
+            if artist is not None and track_name is not None:
+                spotify_client = SpotifyClient()
+
+                spotify_uri = spotify_client.search_spotify_track(
+                    artist,
+                    track_name)
+
+                # adjust function if changes happen to track info ?
+                # spotify_uri, track_id = self.search_spotify_track(artist, track_name)
+
+                # collect all relevant track info and skip any missing tracks and artists
+                self.track_info[video_title] = {
+                    "youtube_url": youtube_url,
+                    "spotify_uri": spotify_uri,
+                    "artist": artist,
+                    "track_name": track_name,
+                    # "track_id": track_id
+                }
+    """
