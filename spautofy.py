@@ -24,6 +24,17 @@ class Spautofy(object):
 
             # for each video in the selected youtube playlist, collect the track information
             selected_playlist = youtube_playlists[selected_playlist]
-            print(selected_playlist)
+
+            tracks = youtube_client.get_videos_from_youtube_playlist(
+                selected_playlist.playlist_id)
+
+            if not tracks:
+                print("the youtube playlist is empty")
+            else:
+                print(
+                    f"exporting the following tracks from your youtube playlist {selected_playlist.playlist_title} ...\n")
+                for track in tracks:
+                    print(
+                        f"artist: {track.artist}\ntrack: {track.track_name}\nvideo_id: {track.video_id}\n")
         else:
             pass
