@@ -1,5 +1,6 @@
 
 from constants import DEBUG_MODE
+from spotify_client import SpotifyClient
 from youtube_client import YouTubeClient
 
 
@@ -14,27 +15,39 @@ class Spautofy(object):
         youtube_client = YouTubeClient()
         youtube_playlists = youtube_client.get_youtube_playlists()
 
-        if DEBUG_MODE:
-            # prompt a user to choose from a list of their existing youtube playlists
-            for index, playlist in enumerate(youtube_playlists):
-                print(f"{index}: {playlist.playlist_title}")
+        # prompt a user to choose from a list of their existing youtube playlists
+        for index, playlist in enumerate(youtube_playlists):
+            print(f"{index}: {playlist.playlist_title}")
 
-            selected_playlist = int(
-                input("select a youtube playlist to export tracks from: "))
+        selected_playlist = int(
+            input("select a youtube playlist to export tracks from: "))
 
-            # for each video in the selected youtube playlist, collect the track information
-            selected_playlist = youtube_playlists[selected_playlist]
+        # for each video in the selected youtube playlist, collect the track information
+        selected_playlist = youtube_playlists[selected_playlist]
 
-            tracks = youtube_client.get_videos_from_youtube_playlist(
-                selected_playlist.playlist_id)
+        youtube_videos = youtube_client.get_videos_from_youtube_playlist(
+            selected_playlist.playlist_id)
 
-            if not tracks:
+        spotify_client = SpotifyClient()
+
+        if not youtube_videos:
+            if DEBUG_MODE:
                 print("the youtube playlist is empty")
-            else:
-                print(
-                    f"exporting the following tracks from your youtube playlist {selected_playlist.playlist_title} ...\n")
-                for track in tracks:
-                    print(
-                        f"artist: {track.artist}\ntrack: {track.track_name}\nvideo_id: {track.video_id}\n")
         else:
-            pass
+            for track in youtube_videos:
+                if DEBUG_MODE:
+                    print(
+                        f"artist: {track.artist}\ntrack: {track.track_name}\nyoutube video id: {track.youtube_video_id}")
+
+                spotify_track_id = spotify_client.search_spotify_track(
+                    track.artist, track.track_name)
+
+                spotify_track_id_found = bool(spotify_track_id)
+
+                if spotify_track_id_found:
+                    if DEBUG_MODE:
+                        print(f"spotify track id: {spotify_track_id}\n")
+                else:
+                    if DEBUG_MODE:
+                        print(
+                            f"spotify track id: \"{track.artist} - {track.track_name}\" was not found\n")

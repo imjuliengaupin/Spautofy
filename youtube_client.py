@@ -22,7 +22,6 @@ class YouTubeClient(object):
         # disable oauthlib's https verification when running locally
         # do not leave this option enabled in production, set os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = "0"
         os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = "1"
-
         api_service_name = "youtube"
         api_version = "v3"
 
@@ -70,13 +69,13 @@ class YouTubeClient(object):
 
         tracks = []
         for item in response['items']:
-            video_id = item['snippet']['resourceId']['videoId']
+            youtube_video_id = item['snippet']['resourceId']['videoId']
 
             artist, track_name = self.get_artist_and_track_from_youtube_video(
-                video_id)
+                youtube_video_id)
 
             if artist and track_name:
-                tracks.append(Track(artist, track_name, video_id))
+                tracks.append(Track(artist, track_name, youtube_video_id))
 
         return tracks
 
@@ -97,7 +96,7 @@ class YouTubeClient(object):
                 f"unrecognized artist\nplease provide the artist of the track \"{video['title']}\": ")
             track = video['title']
 
-        # TODO handle artist and track formatting here
+        # TEST handle artist and track formatting here ?
 
         # removes any emojis from the artist and track names
         artist = emoji.get_emoji_regexp().sub(u"", artist.lower().title())
