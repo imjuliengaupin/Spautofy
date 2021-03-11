@@ -6,19 +6,21 @@ import os
 import youtube_dl
 
 from constants import CLIENT_SECRETS_FILE, SCOPES
-from playlist import Playlist
-from track import Track
+from youtube_playlist import YouTubePlaylist
 from youtube_title_parse import get_artist_title
+from youtube_video import YouTubeVideo
 
 
 class YouTubeClient(object):
+    # RESEARCH using google 2fa as a login method
+
     def __init__(self):
-        self.youtube_client = self.get_youtube_client()
+        self.youtube_client = self.get_client()
 
     def __str__(self):
         return super().__str__()
 
-    def get_youtube_client(self):
+    def get_client(self):
         # disable oauthlib's https verification when running locally
         # do not leave this option enabled in production, set os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = "0"
         os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = "1"
@@ -27,87 +29,85 @@ class YouTubeClient(object):
 
         # get youtube credentials and create an api client from the youtube data api
         flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
-            CLIENT_SECRETS_FILE,
-            SCOPES)
+            CLIENT_SECRETS_FILE, SCOPES)
 
         # an authorization code will be asked for here
         credentials = flow.run_console()
 
         # youtube_client is a "googleapiclient.discovery.Resource" object
         youtube_client = googleapiclient.discovery.build(
-            api_service_name,
-            api_version,
-            credentials=credentials)
+            api_service_name, api_version, credentials=credentials)
 
         return youtube_client
 
-    def get_youtube_playlists(self):
-        request = self.youtube_client.playlists().list(
-            part="id,snippet",
-            maxResults=20,
-            mine=True)
+    def get_user_playlists(self):
+        # https://developers.google.com/youtube/v3/docs/playlists/list
+        request = self.youtube_client.playlists().list(part="id,snippet", mine=True)
 
         response = request.execute()
 
-        youtube_playlists = []
-        for item in response['items']:
-            youtube_playlists.append(
-                Playlist(item['id'], item['snippet']['title']))
+        # TODO write out response info to a file (formatted)
+        # TODO extract additional playlist attrs (refer spotify_client.py)
+        playlist_info = response['items']
+        playlists = []
+
+        for attr in playlist_info:
+            playlists.append(YouTubePlaylist(
+                attr['id'], attr['snippet']['title']))
 
         # alternative implementation
-        # youtube_playlists = [Playlist(item['id'], item['snippet']['title']) for item in response['items']]
+        # playlists = [YouTubePlaylist(attr['id'], attr['snippet']['title']) for attr in playlist_info]
 
-        return youtube_playlists
+        return playlists
 
-    def get_videos_from_youtube_playlist(self, playlist_id):
+    def get_playlist_videos(self, playlist_id):
+        # https://developers.google.com/youtube/v3/docs/playlistItems/list
         request = self.youtube_client.playlistItems().list(
-            playlistId=playlist_id,
-            part="id,snippet",
-            maxResults=20)
+            part="id,snippet", playlistId=playlist_id)
 
         response = request.execute()
 
-        tracks = []
-        for item in response['items']:
-            youtube_video_id = item['snippet']['resourceId']['videoId']
+        # TODO write out response info to a file (formatted)
+        # TODO extract additional video attrs (refer spotify_client.py)
+        video_info = response['items']
+        videos = []
 
-            artist, track_name = self.get_artist_and_track_from_youtube_video(
-                youtube_video_id)
+        for attr in video_info:
+            video_id = attr['snippet']['resourceId']['videoId']
+
+            artist, track_name = self.get_playlist_video_track_info(video_id)
 
             if artist and track_name:
-                tracks.append(Track(artist, track_name, youtube_video_id))
+                videos.append(YouTubeVideo(artist, track_name))
 
-        return tracks
+        return videos
 
-    def get_artist_and_track_from_youtube_video(self, video_id):
-        youtube_url = f"https://www.youtube.com/watch?v={video_id}"
+    def get_playlist_video_track_info(self, video_id):
+        url = f"https://www.youtube.com/watch?v={video_id}"
 
-        video = youtube_dl.YoutubeDL({'quiet': True}).extract_info(
-            youtube_url,
-            download=False)
+        video = youtube_dl.YoutubeDL(
+            {'quiet': True}).extract_info(url, download=False)
 
         try:
-            artist, track = get_artist_title(video['title'])
-        except TypeError as error_msg:
-            # print(error_msg)
-
-            # TEST on multiple video title scenarios
+            artist, track_name = get_artist_title(video['title'])
+        except TypeError:
             artist = input(
                 f"unrecognized artist\nplease provide the artist of the track \"{video['title']}\": ")
-            track = video['title']
-
-        # TEST handle artist and track formatting here ?
+            track_name = video['title']
 
         # removes any emojis from the artist and track names
+        # TODO remove extra whitespaces
         artist = emoji.get_emoji_regexp().sub(u"", artist.lower().title())
-        track = emoji.get_emoji_regexp().sub(u"", track.lower().title())
+        track_name = emoji.get_emoji_regexp().sub(u"", track_name.lower().title())
 
-        # RESEARCH how to handle when artist/track naming format is swapped
+        # TODO youtube/spotify overlap to begin here
+        # TODO youtube video title cross validation with spotify track
+        # RESEARCH how to handle when artist/track youtube video naming format is swapped
+        return artist, track_name
 
-        return artist, track
-
-    # TEST experimental functionality
-    """def get_liked_youtube_videos(self):
+    # TEST
+    """self.track_info = {}
+    def get_liked_youtube_videos(self):
         # collect all liked videos and create a dictionary of track info
         request = self.youtube_client.videos().list(
             part="snippet,contentDetails,statistics",
@@ -145,5 +145,4 @@ class YouTubeClient(object):
                     "artist": artist,
                     "track_name": track_name,
                     # "track_id": track_id
-                }
-    """
+                }"""
