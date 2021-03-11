@@ -4,7 +4,7 @@ DEBUG_MODE = True
 
 # spotify_client.py
 # generate new spotify tokens at https://developer.spotify.com/console
-# spotify tokens expire every 1 hour
+# NOTE spotify tokens expire every 1 hour
 SPOTIFY_TOKEN = ""
 SPOTIFY_USER_ID = ""
 
