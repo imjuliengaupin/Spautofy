@@ -64,3 +64,61 @@ class SpotifyClient(object):
 
         # FIXME implement a better way to handle this function return
         return response.ok
+
+    # TEST
+    """def create_a_playlist(self):
+        request = json.dumps({
+            "name": "Spautofy",
+            "description": "",
+            "public": False  # creates a private playlist
+        })
+
+        query = f"https://api.spotify.com/v1/users/{self.user_id}/playlists"
+
+        response = requests.post(
+            query,
+            data=request,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.oauth_token}"})
+
+        playlist = response.json()
+
+        return playlist['id']
+
+    def add_track_to_spotify_playlist(self):
+        youtube_client = YouTubeClient()
+
+        playlist_id = self.create_a_playlist()
+
+        # add all liked tracks from youtube into the new spotify playlist
+        # and populate a dictionary with the tracks info
+        youtube_client.get_liked_youtube_videos()
+
+        uris = []
+
+        for track, info in self.track_info.items():
+            uris.append(info['spotify_uri'])
+
+        # alternative implementation
+        # uris = [info['spotify_uri'] for track, info in self.track_info.items()]
+
+        # add all tracks into the new playlist
+        request = json.dumps(uris)
+
+        query = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
+
+        response = requests.post(
+            query,
+            data=request,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.oauth_token}"})
+
+        # check for a valid response status
+        if response.status_code != 200:
+            raise Exception(response.status_code)
+
+        json_response = response.json()
+
+        return json_response"""

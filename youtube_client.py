@@ -107,16 +107,13 @@ class YouTubeClient(object):
 
     # TEST
     """self.track_info = {}
-    def get_liked_youtube_videos(self):
-        # collect all liked videos and create a dictionary of track info
+    def get_liked_videos(self):
+        # https://developers.google.com/youtube/v3/docs/videos/list
         request = self.youtube_client.videos().list(
-            part="snippet,contentDetails,statistics",
-            myRating="like"
-        )
+            part="snippet,contentDetails,statistics", myRating="like")
 
         response = request.execute()
 
-        # collect each video and get important information
         for item in response['items']:
             video_title = item['snippet']['title']
             youtube_url = f"https://www.youtube.com/watch?v={item['id']}"
@@ -132,8 +129,7 @@ class YouTubeClient(object):
                 spotify_client = SpotifyClient()
 
                 spotify_uri = spotify_client.search_spotify_track(
-                    artist,
-                    track_name)
+                    artist, track_name)
 
                 # adjust function if changes happen to track info ?
                 # spotify_uri, track_id = self.search_spotify_track(artist, track_name)
