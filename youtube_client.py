@@ -12,7 +12,8 @@ from youtube_video import YouTubeVideo
 
 
 class YouTubeClient(object):
-    # RESEARCH using google 2fa as a login method
+    # RESEARCH django functionality - using spotify 2fa as a login method to pull a users account
+    # details (playlists, liked songs, etc.) to use the program for their own account
 
     def __init__(self):
         self.youtube_client = self.get_client()
@@ -80,7 +81,7 @@ class YouTubeClient(object):
             if artist and track_name:
                 videos.append(YouTubeVideo(artist, track_name))
 
-        return videos
+        return videos, video_id
 
     def get_playlist_video_track_info(self, video_id):
         url = f"https://www.youtube.com/watch?v={video_id}"
